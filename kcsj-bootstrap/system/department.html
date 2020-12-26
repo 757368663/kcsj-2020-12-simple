@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html lang="zh-cn">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>通用增删改查</title>
+
+	<link href="../resources/plugins/bootstrap-3.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+	<link href="../resources/plugins/material-design-iconic-font-2.2.0/css/material-design-iconic-font.min.css" rel="stylesheet"/>
+	<link href="../resources/plugins/bootstrap-table-1.11.0/bootstrap-table.min.css" rel="stylesheet"/>
+	<link href="../resources/plugins/waves-0.7.5/waves.min.css" rel="stylesheet"/>
+	<link href="../resources/plugins/jquery-confirm/jquery-confirm.min.css" rel="stylesheet"/>
+	<link href="../resources/plugins/select2/css/select2.min.css" rel="stylesheet"/>
+
+	<link href="../resources/css/common.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="main">
+	<div id="toolbar">
+		<a class="waves-effect waves-button" href="javascript:;" onclick="createAction()"><i class="zmdi zmdi-plus"></i> 新增部门</a>
+		<a class="waves-effect waves-button" href="javascript:;" onclick="updateAction()"><i class="zmdi zmdi-edit"></i> 编辑部门</a>
+		<a class="waves-effect waves-button" href="javascript:;" onclick="deleteAction()"><i class="zmdi zmdi-close"></i> 删除部门</a>
+	</div>
+	<table id="table"></table>
+</div>
+<!-- 新增 -->
+<div id="createDialog" class="crudDialog" hidden>
+	<form>
+		<div class="form-group">
+			<input id="name" type="text" class="form-control" placeholder="部门名称"  autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="person" type="text" class="form-control" placeholder="录入人" autocomplete="off" />
+		</div>
+		
+		<div class="form-group">
+			<input id="descrip" type="text" class="form-control" placeholder="描述" autocomplete="off" />
+		</div>
+	</form>
+</div>
+<script src="../resources/plugins/jquery.1.12.4.min.js"></script>
+<script src="../resources/plugins/bootstrap-3.3.0/js/bootstrap.min.js"></script>
+<script src="../resources/plugins/bootstrap-table-1.11.0/bootstrap-table.min.js"></script>
+<script src="../resources/plugins/bootstrap-table-1.11.0/locale/bootstrap-table-zh-CN.min.js"></script>
+<script src="../resources/plugins/waves-0.7.5/waves.min.js"></script>
+<script src="../resources/plugins/jquery-confirm/jquery-confirm.min.js"></script>
+<script src="../resources/plugins/select2/js/select2.min.js"></script>
+
+<script src="../resources/js/common.js"></script>
+<script src="../resources/js/crud.js"></script>
+<script>
+var clickId = 0;
+var confirm ;
+var $table = $('#table');
+var _this = this;
+$(function() {
+	$(document).on('focus', 'input[type="text"]', function() {
+		$(this).parent().find('label').addClass('active');
+	}).on('blur', 'input[type="text"]', function() {
+		if ($(this).val() == '') {
+			$(this).parent().find('label').removeClass('active');
+		}
+	});
+	// bootstrap table初始化
+	// http://bootstrap-table.wenzhixin.net.cn/zh-cn/documentation/
+	$table.bootstrapTable({
+		url: baseUrl+'getDepartment',
+		height: getHeight(),
+		striped: true,
+		search: true,
+		searchOnEnterKey: true,
+		showRefresh: true,
+		showToggle: true,
+		showColumns: true,
+		minimumCountColumns: 2,
+		showPaginationSwitch: true,
+		clickToSelect: true,
+		detailView: true,
+		detailFormatter: 'detailFormatter',
+		pagination: false,
+		paginationLoop: false,
+		classes: 'table table-hover table-no-bordered',
+		smartDisplay: false,
+		idField: 'id',
+		sortName: 'id',
+		sortOrder: 'desc',
+		escape: true,
+		searchOnEnterKey: true,
+		idField: 'systemId',
+		maintainSelected: true,
+		toolbar: '#toolbar',
+		columns: [
+			{field: 'state', checkbox: true},
+			{field: 'id', title: '编号', sortable: true, halign: 'center',align:'center'},
+			{field: 'name', title: '部门名称', sortable: true, halign: 'center',align:'center'},
+			{field: 'person', title: '录入人', sortable: true, halign: 'center',align:'center'},
+			{field: 'descrip', title: '描述', sortable: true, halign: 'center',align:'center'},
+		]
+	}).on('all.bs.table', function (e, name, args) {
+		$('[data-toggle="tooltip"]').tooltip();
+		$('[data-toggle="popover"]').popover();  
+	});
+});
+// 新增
+function createAction() {
+	confirm = $.confirm({
+		type: 'dark',
+		animationSpeed: 300,
+		title: '新增系统',
+		content: $('#createDialog').html(),
+		buttons: {
+			confirm: {
+				text: '确认',
+				btnClass: 'waves-effect waves-button',
+				action: function () {
+					let item = $('.jconfirm-content');	
+					let data = JSON.stringify({'name':item.find('#name').val(),'person':item.find('#person').val(),'descrip':item.find('#descrip').val()});
+					console.log(data);
+					$.ajax({
+						url:baseUrl+'insertDepartment',
+						contentType:  'application/json;charset=utf-8' ,
+						type:'post',
+						data:data,
+						success:function(res){
+							_this.refresh();
+						}
+					})
+					$.alert('确认');
+				}
+			},
+			cancel: {
+				text: '取消',	
+				btnClass: 'waves-effect waves-button',
+			}
+		},
+	});
+}
+// 编辑
+function updateAction() {
+	let that= this;
+	var rows = $table.bootstrapTable('getSelections');
+	console.log(rows);
+	$('#name').attr('value',rows[0].name);
+	$('#person').attr('value',rows[0].person);
+	$('#descrip').attr('value',rows[0].descrip);
+	
+	if (rows.length == 0) {
+		$.confirm({
+			title: false,
+			content: '请至少选择一条记录！',
+			autoClose: 'cancel|3000',
+			backgroundDismiss: true,
+			buttons: {
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	} else {
+		$.confirm({
+			type: 'blue',
+			animationSpeed: 300,
+			title: '编辑系统',
+			content: $('#createDialog').html(),
+			buttons: {
+				confirm: {
+					text: '确认',
+					btnClass: 'waves-effect waves-button',
+					action: function () {
+						let item = $('.jconfirm-content');	
+						let data = JSON.stringify({'id':rows[0].id,'name':item.find('#name').val(),
+								  'person':item.find('#person').val(),'descrip':item.find('#descrip').val()});
+						console.log(data);
+						$.ajax({
+							url:baseUrl+'updateDepartment',
+							contentType:  'application/json;charset=utf-8' ,
+							type:'post',
+							data:data,
+							success:function(res){
+								_this.refresh();
+							}
+						})
+						$.alert('确认');
+					}
+				},
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	}
+}
+// 删除
+function deleteAction() {
+	var rows = $table.bootstrapTable('getSelections');
+	if (rows.length == 0) {
+		$.confirm({
+			title: false,
+			content: '请至少选择一条记录！',
+			autoClose: 'cancel|3000',
+			backgroundDismiss: true,
+			buttons: {
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	} else {
+		$.confirm({
+			type: 'red',
+			animationSpeed: 300,
+			title: false,
+			content: '确认删除该系统吗？',
+			buttons: {
+				confirm: {
+					text: '确认',
+					btnClass: 'waves-effect waves-button',
+					action: function () {
+						var ids = new Array();
+						for (var i in rows) {
+							ids.push(rows[i].id);
+						}
+						$.ajax({
+							url:baseUrl+'deleteDepartment',
+							type:'post',
+							contentType:'application/json;charset=utf-8',
+							dataType:"json",
+							data:JSON.stringify(ids),
+							timeout:'10000',
+							success:function(res){
+								console.log(res);
+								refresh();
+								$.alert('删除：id=' + ids.join("-"));
+							}
+						})
+					}
+				},
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	}
+}
+//刷新表
+function refresh(){
+	$('[name=refresh]').click();
+}
+</script>
+</body>
+</html>

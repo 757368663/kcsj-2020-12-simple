@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="fun.eriri.dao.MeterialCRUD">
+    <select id="getAllMeterial" resultType="Meterial">
+        select *,phone_number as phoneNumber,meterial_type.name as type_name from meterial,meterial_type where meterial.type = meterial_type.id;
+    </select>
+
+    <select id="getMeterialByid" resultType="Meterial" parameterType="java.lang.Integer">
+        select *,phone_number as phoneNumber from meterial where id = #{id};
+    </select>
+
+    <insert id="insertMeterial" parameterType="Meterial" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into meterial(name,person,create_date,type,remark,phone_number,count,inspectCount)
+        value (#{name},#{person},now(),#{type},#{remark},#{phoneNumber},#{count},#{inspectCount});
+    </insert>
+
+    <update id="updateMeterialByid" parameterType="Meterial" >
+        update meterial set name=#{name},person=#{person},type=#{type},remark=#{remark},
+        phone_number=#{phoneNumber},count=#{count},inspectCount=#{inspectCount}
+        where id = #{id};
+    </update>
+
+    <update id="updateMeteriaCountlByid" parameterType="Meterial">
+        update meterial set count = #{count}
+        where id = #{id};
+    </update>
+
+    <delete id="delteMeterialByid" parameterType="java.util.List">
+        delete from meterial where id in (
+        <foreach collection="list" item="value" separator="," close="">
+            #{value}
+        </foreach>
+        )
+    </delete>
+
+</mapper>

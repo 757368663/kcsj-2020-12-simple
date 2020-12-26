@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="fun.eriri.dao.MeterialTypeCURD">
+    <select id="getAllMeterialType" resultType="MeterialType">
+        select * from meterial_type;
+    </select>
+
+    <select id="getMeterialTypeByid" parameterType="java.lang.Integer" resultType="MeterialType">
+        select * from meterial_type where id = #{id};
+    </select>
+
+    <update id="updateMeterialTypeByid">
+        update meterial_type set name = #{name},person=#{person} where id = #{id}
+    </update>
+    <delete id="delteMeterialTypeByid" parameterType="java.util.List">
+        delete from meterial_type where id in (
+        <foreach collection="list" close="" separator="," item="item">
+            #{item}
+        </foreach>
+        );
+    </delete>
+
+    <insert id="insertMeterialType" parameterType="MeterialType">
+        insert into meterial_type (name,person,create_date) values (#{name},#{person},now());
+    </insert>
+</mapper>

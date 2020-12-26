@@ -1,0 +1,87 @@
+<h1>Springboot后端设计</h1>
+<h2>数据库设计</h2>
+<h3>材料表 &amp; 材料分类表</h3>
+<ul>
+<li><p>装修材料分类 </p>
+<ul>
+<li><p>墙体材料</p>
+<ul>
+<li>腻子，壁纸，乳胶漆，墙面砖</li>
+
+</ul>
+</li>
+<li><p>顶部材料</p>
+<ul>
+<li>石膏板，PVC板，透光板，顶板</li>
+
+</ul>
+</li>
+<li><p>装饰线 </p>
+<ul>
+<li>踢脚线，护墙板，檐口线脚</li>
+
+</ul>
+</li>
+<li><p>地面材料</p>
+<ul>
+<li>地砖，木质地板，地毯，找平材料</li>
+
+</ul>
+</li>
+<li><p>链接材料</p>
+<ul>
+<li>紧固件，粘接剂，连接件</li>
+
+</ul>
+</li>
+
+</ul>
+<p>        </p>
+</li>
+
+</ul>
+<ul>
+<li><p>库表关系</p>
+<ul>
+<li>装修材料分类与具体材料为一对多关系，因此<strong><em>材料表属性</em></strong>一条外键为<strong><em>材料分类id</em></strong></li>
+
+</ul>
+</li>
+<li><p>库表字段</p>
+<ul>
+<li><p>材料分类库</p>
+<ul>
+<li>id ， name（分类名称），person（录入人），create_date（创建时间）</li>
+
+</ul>
+</li>
+<li><p>材料库</p>
+<ul>
+<li>id ，name（材料名称），count（数量），person（录入人），create_date(创建时间)，type（材料类型，外键），remark（备注），phone_number (联系人电话)</li>
+
+</ul>
+<p>&nbsp;</p>
+</li>
+
+</ul>
+</li>
+
+</ul>
+<p>&nbsp;</p>
+<h3>出入库订单表</h3>
+<ul>
+<li><p>库表关系</p>
+<ul>
+<li>订单与材料绑定，为多对一关系，因此<strong><em>订单表属</em></strong>性一条外键为<strong><em>材料id</em></strong></li>
+
+</ul>
+</li>
+<li><p>库表字段</p>
+<ul>
+<li>id，name（材料名称），meterial_id(材料id)，count（出入库数量），person（操作人），reason（操作原因），inb（是否为入库），create_date （创建时间）</li>
+
+</ul>
+<p>&nbsp;</p>
+</li>
+
+</ul>

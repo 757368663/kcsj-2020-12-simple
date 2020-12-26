@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="fun.eriri.dao.OrderCrud">
+    <select id="getAllOrder" resultType="Order">
+        select * from orders;
+    </select>
+    <select id="getInOrder" resultType="Order">
+        select * from orders where inb = 1;
+    </select>
+    <select id="getOutOrder" resultType="Order">
+        select * from orders where inb = 0;
+    </select>
+
+    <delete id="deleteOrder" parameterType="java.util.List">
+        delete from orders where id in (
+            <foreach collection="list" item="item" separator="," close="" >
+                #{item}
+            </foreach>
+        )
+    </delete>
+
+
+    <insert id="insertOrder" parameterType="java.util.List">
+        insert into orders (name,meterial_id,count,person,phone,reason,inb,create_date) values
+            <foreach collection="list" separator="," item="item" close=";" >
+                (#{item.name},#{item.meterial_id},#{item.count},#{item.person},#{item.phone},#{item.reason},#{item.inb},now())
+            </foreach>
+
+    </insert>
+</mapper>

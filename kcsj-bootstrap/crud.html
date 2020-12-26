@@ -1,0 +1,487 @@
+<!DOCTYPE HTML>
+<html lang="zh-cn">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>通用增删改查</title>
+
+	<link href="resources/plugins/bootstrap-3.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+	<link href="resources/plugins/material-design-iconic-font-2.2.0/css/material-design-iconic-font.min.css" rel="stylesheet"/>
+	<link href="resources/plugins/bootstrap-table-1.11.0/bootstrap-table.min.css" rel="stylesheet"/>
+	<link href="resources/plugins/waves-0.7.5/waves.min.css" rel="stylesheet"/>
+	<link href="resources/plugins/jquery-confirm/jquery-confirm.min.css" rel="stylesheet"/>
+	<link href="resources/plugins/select2/css/select2.min.css" rel="stylesheet"/>
+
+	<link href="resources/css/common.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="main">
+	<div id="toolbar">
+		<a class="waves-effect waves-button" href="javascript:;" onclick="createAction()"><i class="zmdi zmdi-plus"></i> 新增材料</a>
+		<a class="waves-effect waves-button" href="javascript:;" onclick="updateAction()"><i class="zmdi zmdi-edit"></i> 编辑材料</a>
+		<a class="waves-effect waves-button" href="javascript:;" onclick="deleteAction()"><i class="zmdi zmdi-close"></i> 删除材料</a>
+		<a class="waves-effect waves-button" href="javascript:;" onclick="push()"><i class="zmdi zmdi-close"></i> 导出</a>
+		<a class="waves-effect waves-button" href="javascript:;" onclick="out()"><i class="zmdi zmdi-close"></i> 材料出库</a>
+		<a class="waves-effect waves-button" href="javascript:;" onclick="into()"><i class="zmdi zmdi-close"></i> 材料入库</a>
+	</div>
+	<table id="table"></table>
+</div>
+<!-- 新增 -->
+<div id="createDialog" class="crudDialog" hidden>
+	<form>
+		<div class="form-group dropdown">
+				<input value="" t_id="" id="type" type="text" placeholder="分类" class="form-control" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<ul id="Mtype" class="dropdown-menu" aria-labelledby="dropdownMenu1" style="height:100px;overflow: scroll">
+					    
+					</ul>
+		</div>
+		<div class="form-group">
+			<input id="name" type="text" class="form-control" placeholder="材料名称"  autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="count" type="text" class="form-control" placeholder="数量" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="inspectCount" type="text" class="form-control" placeholder="数量监控值" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="person" type="text" class="form-control" placeholder="录入人" autocomplete="off" />
+		</div>
+		
+		<div class="form-group">
+			<input id="remark" type="text" class="form-control" placeholder="备注"  autocomplete="off" />
+		</div>
+	</form>
+</div>
+
+
+<!-- 出库 -->
+<div id="out" class="crudDialog" hidden>
+	<form>
+		<div class="form-group">
+			<input id="count" type="text" class="form-control" placeholder="出库数量" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="person" type="text" class="form-control" placeholder="联系人" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="phone" type="text" class="form-control" placeholder="联系电话" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="reason" type="text" class="form-control" placeholder="出库原因"  autocomplete="off" />
+		</div>
+	</form>
+</div>
+
+<!-- 入库 -->
+<div id="into" class="crudDialog" hidden>
+	<form>
+		<div class="form-group">
+			<input id="count" type="text" class="form-control" placeholder="入库数量" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="person" type="text" class="form-control" placeholder="联系人" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="phone" type="text" class="form-control" placeholder="联系电话" autocomplete="off" />
+		</div>
+		<div class="form-group">
+			<input id="reason" type="text" class="form-control" placeholder="入库原因"  autocomplete="off" />
+		</div>
+	</form>
+</div>
+
+<script src="resources/plugins/jquery.1.12.4.min.js"></script>
+<script src="resources/plugins/bootstrap-3.3.0/js/bootstrap.min.js"></script>
+<script src="resources/plugins/bootstrap-table-1.11.0/bootstrap-table.min.js"></script>
+<script src="resources/plugins/bootstrap-table-1.11.0/locale/bootstrap-table-zh-CN.min.js"></script>
+<script src="resources/plugins/waves-0.7.5/waves.min.js"></script>
+<script src="resources/plugins/jquery-confirm/jquery-confirm.min.js"></script>
+<script src="resources/plugins/select2/js/select2.min.js"></script>
+
+<script src="resources/js/common.js"></script>
+<script src="resources/js/crud.js"></script>
+<script>
+var clickId = 0;
+var confirm ;
+var $table = $('#table');
+var _this = this;
+$(function() {
+	$(document).on('focus', 'input[type="text"]', function() {
+		$(this).parent().find('label').addClass('active');
+	}).on('blur', 'input[type="text"]', function() {
+		if ($(this).val() == '') {
+			$(this).parent().find('label').removeClass('active');
+		}
+	});
+	// bootstrap table初始化
+	// http://bootstrap-table.wenzhixin.net.cn/zh-cn/documentation/
+	$table.bootstrapTable({
+		url: baseUrl+'getAllMeterial',
+		height: getHeight(),
+		striped: true,
+		search: true,
+		searchOnEnterKey: true,
+		showRefresh: true,
+		showToggle: true,
+		showColumns: true,
+		minimumCountColumns: 2,
+		showPaginationSwitch: true,
+		clickToSelect: true,
+		detailView: true,
+		detailFormatter: 'detailFormatter',
+		pagination: false,
+		paginationLoop: false,
+		classes: 'table table-hover table-no-bordered',
+		//sidePagination: 'server',
+		//silentSort: false,
+		smartDisplay: false,
+		idField: 'id',
+		sortName: 'id',
+		sortOrder: 'desc',
+		escape: true,
+		searchOnEnterKey: true,
+		idField: 'systemId',
+		maintainSelected: true,
+		toolbar: '#toolbar',
+		columns: [
+			{field: 'state', checkbox: true},
+			{field: 'id', title: '编号', sortable: true, halign: 'center',align:'center'},
+			{field: 'name', title: '材料名称', sortable: true, halign: 'center',align:'center'},
+			{field: 'person', title: '录入人', sortable: true, halign: 'center',align:'center'},
+			{field: 'type_name', title: '材料类型', sortable: true, halign: 'center',align:'center'},
+			{field: 'inspectCount', title: '数量监控值', sortable: true, halign: 'center',align:'center'},
+			{field: 'count', title: '材料数量', sortable: true, halign: 'center',align:'center'},
+			{field: 'create_date', title: '录入时间', sortable: true, halign: 'center',align:'center'},
+			{field: 'state_c', title: '状态', sortable: true, halign: 'center',align:'center'},
+			{field: 'remark', title: '备注', sortable: true, halign: 'center',align:'center'},
+		]
+	}).on('all.bs.table', function (e, name, args) {
+		$('[data-toggle="tooltip"]').tooltip();
+		$('[data-toggle="popover"]').popover();  
+	});
+});
+
+// 新增
+function createAction() {
+	getAllMeterialType();
+	confirm = $.confirm({
+		type: 'dark',
+		animationSpeed: 300,
+		title: '新增系统',
+		content: $('#createDialog').html(),
+		buttons: {
+			confirm: {
+				text: '确认',
+				btnClass: 'waves-effect waves-button',
+				action: function () {
+					// let input = confirm.$content[0].children[0];
+					let item = $('.jconfirm-content');	
+					let data = JSON.stringify({'name':item.find('#name').val(),'type': item.find('#type').attr("t_id"),'inspectCount':item.find('#inspectCount').val(),
+							  'person':item.find('#person').val(),'remark':item.find('#remark').val(),'count':item.find('#count').val()});
+					console.log(data);
+					$.ajax({
+						url:baseUrl+'insertMeterial',
+						contentType:  'application/json;charset=utf-8' ,
+						type:'post',
+						data:data,
+						success:function(res){
+							_this.refresh();
+						}
+					})
+					$.alert('确认');
+				}
+			},
+			cancel: {
+				text: '取消',	
+				btnClass: 'waves-effect waves-button',
+			}
+		},
+	});
+}
+// 编辑
+function updateAction() {
+	let that= this;
+	getAllMeterialType();
+	var rows = $table.bootstrapTable('getSelections');
+	console.log(rows);
+	$('#name').attr('value',rows[0].name);
+	$('#person').attr('value',rows[0].person);
+	$('#remark').attr('value',rows[0].remark);
+	$('#type').attr('value',rows[0].type_name);
+	$('#type').attr('t_id',rows[0].type);
+	$('#count').attr('value',rows[0].count);
+	$('#inspectCount').attr('value',rows[0].inspectCount);
+	
+	if (rows.length == 0||rows.length>1) {
+		$.confirm({
+			title: false,
+			content: '请有且只选择一条记录！',
+			autoClose: 'cancel|3000',
+			backgroundDismiss: true,
+			buttons: {
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	} else {
+		$.confirm({
+			type: 'blue',
+			animationSpeed: 300,
+			title: '编辑系统',
+			content: $('#createDialog').html(),
+			buttons: {
+				confirm: {
+					text: '确认',
+					btnClass: 'waves-effect waves-button',
+					action: function () {
+						let item = $('.jconfirm-content');	
+						let data = JSON.stringify({'id':rows[0].id,'name':item.find('#name').val(),'type': item.find('#type').attr("t_id"),
+								  'person':item.find('#person').val(),'remark':item.find('#remark').val(),'count':item.find('#count').val(),'inspectCount':item.find('#inspectCount').val()});
+						console.log(data);
+						$.ajax({
+							url:baseUrl+'updateMeterial',
+							contentType:  'application/json;charset=utf-8' ,
+							type:'post',
+							data:data,
+							success:function(res){
+								_this.refresh();
+							}
+						})
+						$.alert('确认');
+					}
+				},
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	}
+}
+// 删除
+function deleteAction() {
+	var rows = $table.bootstrapTable('getSelections');
+	if (rows.length == 0) {
+		$.confirm({
+			title: false,
+			content: '请至少选择一条记录！',
+			autoClose: 'cancel|3000',
+			backgroundDismiss: true,
+			buttons: {
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	} else {
+		$.confirm({
+			type: 'red',
+			animationSpeed: 300,
+			title: false,
+			content: '确认删除该系统吗？',
+			buttons: {
+				confirm: {
+					text: '确认',
+					btnClass: 'waves-effect waves-button',
+					action: function () {
+						var ids = new Array();
+						for (var i in rows) {
+							ids.push(rows[i].id);
+						}
+						$.ajax({
+							url:baseUrl+'deleteMeterialByid',
+							type:'post',
+							contentType:'application/json;charset=utf-8',
+							dataType:"json",
+							data:JSON.stringify(ids),
+							timeout:'10000',
+							success:function(res){
+								console.log(res);
+								refresh();
+								$.alert('删除：id=' + ids.join("-"));
+							}
+						})
+					}
+				},
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	}
+}
+//出库
+function out(){
+	var rows = $table.bootstrapTable('getSelections');
+	if (rows.length == 0) {
+		$.confirm({
+			title: false,
+			content: '请至少选择一条记录！',
+			autoClose: 'cancel|3000',
+			backgroundDismiss: true,
+			buttons: {
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	} else {
+		$.confirm({
+			type: 'red',
+			animationSpeed: 300,
+			title: false,
+			content: $('#out').html(),
+			buttons: {
+				confirm: {
+					text: '确认',
+					btnClass: 'waves-effect waves-button',
+					action: function () {
+						let item = $('.jconfirm-content');
+						var ids = new Array();
+						for (var i in rows) {
+							ids.push({
+								'meterial_id':rows[i].id,
+								'name':rows[i].name,
+								 'count':item.find('#count').val(),
+								 'person':item.find('#person').val(),
+								 'phone':item.find('#phone').val(),
+								 'reason':item.find('#reason').val(),
+								 'inb':false
+							});
+						}
+						let data = JSON.stringify(ids);
+						console.log(data);
+						$.ajax({
+							url:baseUrl+'insertOrder',
+							type:'post',
+							contentType:'application/json;charset=utf-8',
+							dataType:"json",
+							data:data,
+							timeout:'10000',
+							success:function(res){
+								console.log(res);
+								if(res == 0){
+									$.alert("库存不足提取，建议采购！")
+								}
+								refresh();
+							}
+						})
+					}
+				},
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	}
+}
+//入库
+function into(){
+	var rows = $table.bootstrapTable('getSelections');
+	if (rows.length == 0) {
+		$.confirm({
+			title: false,
+			content: '请至少选择一条记录！',
+			autoClose: 'cancel|3000',
+			backgroundDismiss: true,
+			buttons: {
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	} else {
+		$.confirm({
+			type: 'red',
+			animationSpeed: 300,
+			title: false,
+			content: $('#into').html(),
+			buttons: {
+				confirm: {
+					text: '确认',
+					btnClass: 'waves-effect waves-button',
+					action: function () {
+						let item = $('.jconfirm-content');
+						var ids = new Array();
+						for (var i in rows) {
+							ids.push({
+								'meterial_id':rows[i].id,
+								'name':rows[i].name,
+								 'count':item.find('#count').val(),
+								 'person':item.find('#person').val(),
+								 'phone':item.find('#phone').val(),
+								 'reason':item.find('#reason').val(),
+								 'inb':true
+							});
+						}
+						let data = JSON.stringify(ids);
+						console.log(data);
+						$.ajax({
+							url:baseUrl+'insertOrder',
+							type:'post',
+							contentType:'application/json;charset=utf-8',
+							dataType:"json",
+							data:data,
+							timeout:'10000',
+							success:function(res){
+								console.log(res);
+								if(res == 0){
+									$.alert("库存不足提取，建议采购！")
+								}
+								refresh();
+							}
+						})
+					}
+				},
+				cancel: {
+					text: '取消',
+					btnClass: 'waves-effect waves-button'
+				}
+			}
+		});
+	}
+}
+
+//导出表
+function push(){
+	window.open(baseUrl+'getMeterialExcel');
+}
+//点击提示框
+function clickDropDown(){
+	let item = $('.jconfirm-content').find('#type');
+	item.attr('t_id',event.target.attributes.id.value);
+	item.val(event.target.innerText);
+}
+//刷新表
+function refresh(){
+	$('[name=refresh]').click();
+}
+//获取所有类型，添加到ul中
+function getAllMeterialType(){
+	$.ajax({
+		url:baseUrl+'getAllMeterialType',
+		dataType:'json',
+		type:'get',
+		async:false,
+		success:function(res){
+			console.log(res);
+			$('#Mtype').empty();
+			$.each(res,function(index,value){
+				var li = '<li id='+value.id+' onclick=clickDropDown() value='+value.name+'>'+value.name+'</li>';
+				$('#Mtype').append(li);
+			})
+		}
+	});
+}
+</script>
+</body>
+</html>

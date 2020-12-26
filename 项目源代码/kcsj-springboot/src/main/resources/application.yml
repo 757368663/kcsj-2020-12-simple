@@ -1,0 +1,22 @@
+server:
+  port: 8082
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://172.25.56.240:3306/kcsj?characterEncoding=UTF-8&serverTimeZone=UTC   #修改此处链接为自己的url
+    username: root                   #数据库账户
+    password: root                  #数据库密码
+  jackson:
+    date-format: yyyy-MM-dd
+    time-zone: GMT+8
+#mybatis:
+#  mapper-locations: classpath:mapper/*.xml
+#  type-aliases-package: fun.eriri.pojo
+logging:
+  level:
+    fun.eriri.dao:
+      debug
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: fun.eriri.pojo
